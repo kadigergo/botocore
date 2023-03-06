@@ -1126,6 +1126,32 @@ class TestGenerateDBAuthToken(BaseSignerTest):
         # on certain systems.
         assert_url_equal('https://' + result, 'https://' + expected_result)
 
+    def test_custom_region(self):
+        hostname = 'host.us-east-1.rds.amazonaws.com'
+        port = 3306
+        username = 'mySQLUser'
+        region = 'us-west-2'
+        result = generate_db_auth_token(
+            self.client, hostname, port, username, Region=region
+        )
+
+        self.assertIn(region, result)
+        # The hostname won't be changed even if a different region is specified
+        self.assertIn(hostname, result)
+
+class TestGenerateRedisAuthToken(BaseSignerTest):
+    maxDiff = None
+
+    def setUp(self):
+        self.session = botocore.session.get_session()
+        self.client = self.session.create_client(
+            'rds',
+            region_name='us-east-1',
+            aws_access_key_id='akid',
+            aws_secret_access_key='skid',
+            config=Config(signature_version='v4'),
+        )
+
     def test_generate_elasticache_auth_token(self):
         hostname = 'prod-instance.us-east-1.elasticache.amazonaws.com'
         port = 6379
@@ -1134,7 +1160,7 @@ class TestGenerateDBAuthToken(BaseSignerTest):
 
         with mock.patch('datetime.datetime') as dt:
             dt.utcnow.return_value = clock
-            result = generate_db_auth_token(
+            result = generate_elasticache_auth_token(
                 self.client, hostname, port, username
             )
 
@@ -1144,7 +1170,7 @@ class TestGenerateDBAuthToken(BaseSignerTest):
             '&X-Amz-Date=20161107T173933Z&X-Amz-SignedHeaders=host'
             '&X-Amz-Expires=900&X-Amz-Credential=akid%2F20161107%2F'
             'us-east-1%2Felasticache%2Faws4_request&X-Amz-Signature'
-            '=d1138cdbc0ca63eec012ec0fc6c2267e03642168f5884a7795320d4c18374c61'
+            '=44ddaf8b56b11f22a5b1a63a51790861492cd054abf300616b71ef0d09a8c0d5'
         )
 
         # A scheme needs to be appended to the beginning or urlsplit may fail
@@ -1152,8 +1178,8 @@ class TestGenerateDBAuthToken(BaseSignerTest):
         assert_url_equal('https://' + result, 'https://' + expected_result)
 
     def test_custom_region(self):
-        hostname = 'host.us-east-1.rds.amazonaws.com'
-        port = 3306
+        hostname = 'host.us-east-1.elasticache.amazonaws.com'
+        port = 6379
         username = 'mySQLUser'
         region = 'us-west-2'
         result = generate_db_auth_token(

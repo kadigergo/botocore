@@ -532,7 +532,7 @@ def add_generate_elasticache_auth_token(class_attributes, **kwargs):
     class_attributes['generate_elasticache_auth_token'] = generate_elasticache_auth_token
 
 
-def generate_elasticache_auth_token(self, Hostname, Username, Region=None):
+def generate_elasticache_auth_token(self, Hostname, Port, Username, Region=None):
     """Generates an auth token used to connect to a db with IAM credentials.
 
     :type Hostname: str
@@ -575,7 +575,7 @@ def generate_elasticache_auth_token(self, Hostname, Username, Region=None):
     # netloc would be treated as a path component. To work around this we
     # introduce https here and remove it once we're done processing it.
     scheme = 'https://'
-    endpoint_url = f'{scheme}{Hostname}'
+    endpoint_url = f'{scheme}{Hostname}:{Port}'
     prepare_request_dict(request_dict, endpoint_url)
     presigned_url = self._request_signer.generate_presigned_url(
         operation_name='connect',
