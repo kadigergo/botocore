@@ -55,6 +55,7 @@ from botocore.exceptions import (
 from botocore.regions import EndpointResolverBuiltins
 from botocore.signers import (
     add_generate_db_auth_token,
+    add_generate_elasticache_auth_token,
     add_generate_presigned_post,
     add_generate_presigned_url,
 )
@@ -1362,6 +1363,10 @@ BUILTIN_HANDLERS = [
         'docs.*.rds.StartDBInstanceAutomatedBackupsReplication.complete-section',
         AutoPopulatedParam('PreSignedUrl').document_auto_populated_param,
     ),
+    #############
+    # ElastiCache
+    #############
+    ('creating-client-class.elasticache', add_generate_elasticache_auth_token),
     #############
     # Neptune
     #############
