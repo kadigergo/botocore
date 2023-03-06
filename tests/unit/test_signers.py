@@ -35,6 +35,7 @@ from botocore.signers import (
     RequestSigner,
     S3PostPresigner,
     generate_db_auth_token,
+    generate_elasticache_auth_token,
 )
 from tests import assert_url_equal, mock, unittest
 
@@ -1118,6 +1119,31 @@ class TestGenerateDBAuthToken(BaseSignerTest):
             '&X-Amz-Date=20161107T173933Z&X-Amz-SignedHeaders=host'
             '&X-Amz-Expires=900&X-Amz-Credential=akid%2F20161107%2F'
             'us-east-1%2Frds-db%2Faws4_request&X-Amz-Signature'
+            '=d1138cdbc0ca63eec012ec0fc6c2267e03642168f5884a7795320d4c18374c61'
+        )
+
+        # A scheme needs to be appended to the beginning or urlsplit may fail
+        # on certain systems.
+        assert_url_equal('https://' + result, 'https://' + expected_result)
+
+    def test_generate_elasticache_auth_token(self):
+        hostname = 'prod-instance.us-east-1.elasticache.amazonaws.com'
+        port = 6379
+        username = 'someusername'
+        clock = datetime.datetime(2016, 11, 7, 17, 39, 33, tzinfo=tzutc())
+
+        with mock.patch('datetime.datetime') as dt:
+            dt.utcnow.return_value = clock
+            result = generate_db_auth_token(
+                self.client, hostname, port, username
+            )
+
+        expected_result = (
+            'prod-instance.us-east-1.elasticache.amazonaws.com:6379/?Action=connect'
+            '&User=someusername&X-Amz-Algorithm=AWS4-HMAC-SHA256'
+            '&X-Amz-Date=20161107T173933Z&X-Amz-SignedHeaders=host'
+            '&X-Amz-Expires=900&X-Amz-Credential=akid%2F20161107%2F'
+            'us-east-1%2Felasticache%2Faws4_request&X-Amz-Signature'
             '=d1138cdbc0ca63eec012ec0fc6c2267e03642168f5884a7795320d4c18374c61'
         )
 
