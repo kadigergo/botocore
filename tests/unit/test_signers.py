@@ -1145,7 +1145,7 @@ class TestGenerateRedisAuthToken(BaseSignerTest):
     def setUp(self):
         self.session = botocore.session.get_session()
         self.client = self.session.create_client(
-            'rds',
+            'elasticache',
             region_name='us-east-1',
             aws_access_key_id='akid',
             aws_secret_access_key='skid',
@@ -1153,24 +1153,23 @@ class TestGenerateRedisAuthToken(BaseSignerTest):
         )
 
     def test_generate_elasticache_auth_token(self):
-        hostname = 'prod-instance.us-east-1.elasticache.amazonaws.com'
-        port = 6379
+        hostname = 'prod-instance.use1.cache.amazonaws.com'
         username = 'someusername'
         clock = datetime.datetime(2016, 11, 7, 17, 39, 33, tzinfo=tzutc())
 
         with mock.patch('datetime.datetime') as dt:
             dt.utcnow.return_value = clock
             result = generate_elasticache_auth_token(
-                self.client, hostname, port, username
+                self.client, hostname, username
             )
 
         expected_result = (
-            'prod-instance.us-east-1.elasticache.amazonaws.com:6379/?Action=connect'
+            'prod-instance.use1.cache.amazonaws.com/?Action=connect'
             '&User=someusername&X-Amz-Algorithm=AWS4-HMAC-SHA256'
             '&X-Amz-Date=20161107T173933Z&X-Amz-SignedHeaders=host'
             '&X-Amz-Expires=900&X-Amz-Credential=akid%2F20161107%2F'
             'us-east-1%2Felasticache%2Faws4_request&X-Amz-Signature'
-            '=44ddaf8b56b11f22a5b1a63a51790861492cd054abf300616b71ef0d09a8c0d5'
+            '=599220e8918ca6629fa2098cdf3038b728d90a576057ebb43db2ef4a05875324'
         )
 
         # A scheme needs to be appended to the beginning or urlsplit may fail
@@ -1178,11 +1177,11 @@ class TestGenerateRedisAuthToken(BaseSignerTest):
         assert_url_equal('https://' + result, 'https://' + expected_result)
 
     def test_custom_region(self):
-        hostname = 'host.us-east-1.elasticache.amazonaws.com'
+        hostname = 'host.use1.cache.amazonaws.com'
         port = 6379
-        username = 'mySQLUser'
+        username = 'RedisUser'
         region = 'us-west-2'
-        result = generate_db_auth_token(
+        result = generate_elasticache_auth_token(
             self.client, hostname, port, username, Region=region
         )
 
